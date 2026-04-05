@@ -1,5 +1,5 @@
 import express from 'express';
-import { createRoom, getPublicRooms, joinRoom } from '../controllers/roomController.js';
+import { createRoom, getPublicRooms, joinRoom , getRoomMessages } from '../controllers/roomController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -10,5 +10,5 @@ router.route('/')
   .post(authMiddleware, createRoom);
 
 router.post('/:id/join', authMiddleware, joinRoom);
-
+router.get('/:id/messages', authMiddleware, getRoomMessages);
 export default router;

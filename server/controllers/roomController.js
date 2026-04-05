@@ -1,4 +1,5 @@
 import Room from "../models/Room.js";
+import Message from "../models/Message.js";
 
 // @desc    Create a new room
 // @route   POST /api/rooms
@@ -67,5 +68,20 @@ export const joinRoom = async (req, res) => {
     res
       .status(500)
       .json({ message: "Failed to join room", error: error.message });
+  }
+};
+
+// @desc    Get all messages for a specific room
+// @route   GET /api/rooms/:id/messages
+export const getRoomMessages = async (req, res) => {
+  try {
+    const messages = await Message.find({ roomId: req.params.id })
+      .populate("senderId", "name avatar")
+      .sort({ createdAt: 1 });
+    res.json(messages);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch messages", error: error.message });
   }
 };

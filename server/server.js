@@ -4,6 +4,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import app from "./app.js";
 
+import chatSocket from './sockets/chatSocket.js';
 dotenv.config();
 
 const httpServer = createServer(app);
@@ -14,7 +15,7 @@ const io = new Server(httpServer, {
     methods: ["GET", "POST"],
   },
 });
-
+chatSocket(io);
 // MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI)

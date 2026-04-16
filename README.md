@@ -2,16 +2,6 @@
 
 A scalable, real-time collaborative platform engineered for distributed focus sessions. Users can synchronize Pomodoro intervals, architect collaborative documentation, and communicate in isolated, secure topic-based channels via persistent WebSockets.
 
----
-
-## Demo
-
-*Live Deployment Placeholder: [https://peer-study-room.example.com](https://peer-study-room.example.com)*
-
-*UI Demonstration Placeholder: `[Dashboard Interface Screenshot]`*
-*Room Demonstration Placeholder: `[Active Room Synchronized Session GIF]`*
-
----
 
 ## Features
 
@@ -119,7 +109,7 @@ peer-study-room/
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/peer-study-room.git
+   git clone https://github.com/StrawHat-Luffyyy/peer-study-room.git
    cd peer-study-room
    ```
 
@@ -190,18 +180,6 @@ peer-study-room/
 - `timer-update`: High-frequency broadcast triggering numeric UI re-renders.
 - `timer-done`: Alarm trigger sequence.
 
----
-
-## Deployment
-
-### Dual-Environment Architecture
-1. **Frontend (Vercel/Netlify):** 
-   Set the build command in the deployment engine to `npm run build`. Append the backend origin URL inside `.env` via `VITE_API_URL` to route the `axiosInstance` directly outward.
-   
-2. **Backend (Render/Heroku):**
-   Install as an isolated Web Service enforcing `node server.js` as the `start` command. Feed your secure MongoDB Atlas string into the host platform's native Environment Variable container, and update `cors` inside `server.js` to whitelist your specific Frontend domain origin.
-
----
 
 ## Future Improvements
 

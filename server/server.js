@@ -16,6 +16,8 @@ const io = new Server(httpServer, {
   },
 });
 chatSocket(io);
+editorSocket(io);
+timerSocket(io);
 // MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI)

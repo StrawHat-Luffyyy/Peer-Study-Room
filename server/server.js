@@ -5,6 +5,8 @@ import { Server } from "socket.io";
 import app from "./app.js";
 
 import chatSocket from './sockets/chatSocket.js';
+import editorSocket from './sockets/editorSocket.js';
+import timerSocket from './sockets/timerSocket.js';
 dotenv.config();
 
 const httpServer = createServer(app);

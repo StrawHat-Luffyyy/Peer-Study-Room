@@ -5,6 +5,7 @@ import { useAuthStore } from './store/useAuthStore';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Room from './pages/Room';
+import { Toaster } from 'react-hot-toast';
 
 import './App.css';
 
@@ -36,6 +37,7 @@ function App() {
           } 
         />
       </Routes>
+      <Toaster position="bottom-right" />
     </div>
   );
 }

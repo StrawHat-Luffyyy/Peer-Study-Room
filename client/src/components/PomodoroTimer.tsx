@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
+import { toast } from "react-hot-toast";
 
 interface TimerProps {
   roomId: string;
@@ -26,9 +27,10 @@ export const PomodoroTimer = ({ roomId, socket }: TimerProps) => {
 
     // Listen for the alarm
     socket.on("timer-done", (newMode) => {
-      // You could trigger a browser notification or play a sound here!
-      alert(
+      // Trigger sleek toast notification
+      toast.success(
         `${newMode === "break" ? "Focus time is over! Take a break." : "Break is over! Time to focus."}`,
+        { duration: 6000, icon: newMode === "break" ? '☕' : '🧠' }
       );
     });
 

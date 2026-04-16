@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSocket } from "../hooks/useSocket";
 import { useAuthStore } from "../store/useAuthStore";
 import axiosInstance from "../api/axiosInstance";
+import debounce from "lodash/debounce";
 
 interface Message {
   _id: string;
@@ -19,6 +20,7 @@ export const ChatBox = ({ roomId }: { roomId: string }) => {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -43,12 +45,42 @@ export const ChatBox = ({ roomId }: { roomId: string }) => {
       console.log(data.message);
     });
 
+    socket.on("user-typing", (userName: string) => {
+      setTypingUsers((prev) => {
+        if (!prev.includes(userName)) return [...prev, userName];
+        return prev;
+      });
+    });
+
+    socket.on("user-stopped-typing", (userName: string) => {
+      setTypingUsers((prev) => prev.filter((name) => name !== userName));
+    });
+
     // Cleanup listeners
     return () => {
       socket.off("receive-message");
       socket.off("user-joined");
+      socket.off("user-typing");
+      socket.off("user-stopped-typing");
     };
   }, [socket]);
+
+  // Typing emitter (debounced)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleTyping = useCallback(
+    debounce(() => {
+      socket?.emit("stop-typing", { roomId, userName: user?.name });
+    }, 2000),
+    [socket, roomId, user]
+  );
+
+  const onChangeText = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputText(e.target.value);
+    if (socket && user) {
+      socket.emit("typing", { roomId, userName: user.name });
+      handleTyping();
+    }
+  };
 
   // Handle sending a message
   const sendMessage = (e: React.FormEvent<HTMLFormElement>) => {
@@ -85,6 +117,13 @@ export const ChatBox = ({ roomId }: { roomId: string }) => {
         ))}
       </div>
 
+      {/* Typing indicator */}
+      {typingUsers.length > 0 && (
+        <div className="px-4 py-1 text-xs text-blue-500 italic animate-pulse bg-white">
+          {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
+        </div>
+      )}
+
       {/* Input Area */}
       <form
         onSubmit={sendMessage}
@@ -93,7 +132,7 @@ export const ChatBox = ({ roomId }: { roomId: string }) => {
         <input
           type="text"
           value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
+          onChange={onChangeText}
           placeholder="Type a message..."
           className="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />

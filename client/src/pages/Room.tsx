@@ -13,6 +13,7 @@ export default function Room() {
   const socket = useSocket(id as string);
   
   const [roomInfo, setRoomInfo] = useState<RoomType | null>(null);
+  const [activeUsers, setActiveUsers] = useState<any[]>([]);
 
   // We fetch the room info to display its title. We could use a specific GET /api/rooms/:id 
   // but since we only have getPublicRooms, we can look it up (or we can just show generic until a new API is added).
@@ -23,6 +24,16 @@ export default function Room() {
       if (current) setRoomInfo(current);
     }).catch(console.error);
   }, [id]);
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("room-users-update", (users) => {
+      setActiveUsers(users);
+    });
+    return () => {
+      socket.off("room-users-update");
+    };
+  }, [socket]);
 
   if (!id) {
     navigate("/dashboard");
@@ -54,9 +65,16 @@ export default function Room() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center px-3 py-1.5 bg-neutral-800 rounded-lg border border-neutral-700">
-              <Users className="w-4 h-4 text-emerald-400 mr-2" />
-              <span className="text-sm font-medium text-neutral-300">Live</span>
+            <div className="hidden sm:flex items-center px-2 py-1 bg-neutral-800 rounded-lg border border-neutral-700">
+              <Users className="w-4 h-4 text-emerald-400 mr-2 ml-1" />
+              <div className="flex -space-x-2 mr-2">
+                {activeUsers.map((u, i) => (
+                  <div key={i} title={u.name} className="w-6 h-6 rounded-full bg-indigo-500 border border-neutral-800 flex items-center justify-center text-[10px] font-bold text-white z-10 relative">
+                    {u.name.charAt(0).toUpperCase()}
+                  </div>
+                ))}
+              </div>
+              <span className="text-xs font-medium text-neutral-300 pr-1">{activeUsers.length} Live</span>
             </div>
             <button className="p-2 text-neutral-400 hover:text-white bg-neutral-800/50 hover:bg-neutral-800 rounded-lg transition-colors">
               <Settings className="w-5 h-5" />

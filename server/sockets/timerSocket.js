@@ -25,6 +25,7 @@ const timerSocket = (io) => {
           isRunning: false,
           mode: "focus",
           intervalId: null,
+          endTime: null,
         };
       }
 
@@ -32,9 +33,11 @@ const timerSocket = (io) => {
       if (timer.isRunning) return;
 
       timer.isRunning = true;
+      timer.endTime = Date.now() + timer.timeLeft * 1000;
 
       timer.intervalId = setInterval(() => {
-        timer.timeLeft -= 1;
+        const remainingStr = Math.round((timer.endTime - Date.now()) / 1000);
+        timer.timeLeft = Math.max(0, remainingStr);
 
         io.to(roomId).emit("timer-update", {
           timeLeft: timer.timeLeft,
@@ -83,6 +86,23 @@ const timerSocket = (io) => {
           mode: timer.mode,
         });
       }
+    });
+
+    socket.on("disconnecting", () => {
+      // Loop through all rooms the socket is leaving
+      socket.rooms.forEach((roomId) => {
+        if (roomId !== socket.id && activeTimers[roomId]) {
+          // If this is the last person in the room leaving
+          const room = io.sockets.adapter.rooms.get(roomId);
+          if (room && room.size <= 1) {
+             const timer = activeTimers[roomId];
+             if (timer && timer.isRunning) {
+                clearInterval(timer.intervalId);
+                timer.isRunning = false;
+             }
+          }
+        }
+      });
     });
   });
 };

@@ -1,5 +1,6 @@
 import Room from "../models/Room.js";
 import Message from "../models/Message.js";
+import Note from "../models/Note.js";
 
 // @desc    Create a new room
 // @route   POST /api/rooms
@@ -83,5 +84,18 @@ export const getRoomMessages = async (req, res) => {
     res
       .status(500)
       .json({ message: "Failed to fetch messages", error: error.message });
+  }
+};
+
+// @desc    Get the initial document/note for a specific room
+// @route   GET /api/rooms/:id/note
+export const getRoomNote = async (req, res) => {
+  try {
+    const note = await Note.findOne({ roomId: req.params.id });
+    res.json(note || { content: "<p>Start taking notes...</p>" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch room note", error: error.message });
   }
 };

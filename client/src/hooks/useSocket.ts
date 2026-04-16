@@ -14,7 +14,7 @@ export const useSocket = (roomId: string) => {
     const socketInstance = io(SOCKET_URL);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSocket(socketInstance);
-    socketInstance.emit("join-room", roomId, user._id);
+    socketInstance.emit("join-room", roomId, user);
     return () => {
       socketInstance.emit("leave-room", roomId, user._id);
       socketInstance.disconnect();

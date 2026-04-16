@@ -34,3 +34,8 @@ export const getRoomMessages = async (roomId: string) => {
   const response = await axiosInstance.get(`/rooms/${roomId}/messages`);
   return response.data;
 };
+
+export const getRoomNote = async (roomId: string) => {
+  const response = await axiosInstance.get(`/rooms/${roomId}/note`);
+  return response.data;
+};

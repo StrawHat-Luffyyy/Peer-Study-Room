@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogOut, Plus, Users, Hash, Lock, RefreshCw } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { useAuthStore } from "../store/useAuthStore";
 import { getPublicRooms, createRoom, joinRoom, type Room } from "../api/roomService";
 import CreateRoomModal from "../components/CreateRoomModal";
@@ -43,7 +44,7 @@ export default function Dashboard() {
       navigate(`/room/${newRoom._id}`);
     } catch (error) {
       console.error("Failed to create room:", error);
-      alert("Failed to create room.");
+      toast.error("Failed to create room.");
     } finally {
       setIsCreating(false);
     }
@@ -64,7 +65,7 @@ export default function Dashboard() {
         navigate(`/room/${room._id}`);
       } else {
         console.error("Failed to join room:", error);
-        alert(error.response?.data?.message || "Failed to join room.");
+        toast.error(error.response?.data?.message || "Failed to join room.");
       }
     }
   };
@@ -78,7 +79,7 @@ export default function Dashboard() {
       navigate(`/room/${selectedPrivateRoom._id}`);
     } catch (error: any) {
       console.error("Failed to join private room:", error);
-      alert(error.response?.data?.message || "Invalid access code.");
+      toast.error(error.response?.data?.message || "Invalid access code.");
     } finally {
       setIsJoining(false);
     }

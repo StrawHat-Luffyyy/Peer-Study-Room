@@ -1,47 +1,63 @@
-import { useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Socket } from "socket.io-client";
 import { useAuthStore } from "../store/useAuthStore";
 import debounce from "lodash/debounce";
+import { getRoomNote } from "../api/roomService";
 
 interface EditorProps {
   roomId: string;
   socket: Socket | null;
-  initialContent?: string;
 }
 
 export const CollaborativeEditor = ({
   roomId,
   socket,
-  initialContent = "<p>Start taking notes...</p>",
 }: EditorProps) => {
   const { user } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(true);
 
   const editor = useEditor({
     extensions: [StarterKit],
-    content: initialContent,
+    content: "<p>Loading notes...</p>",
     editorProps: {
       attributes: {
         class:
           "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl focus:outline-none min-h-[400px] p-4",
       },
     },
-    // This fires every time the user types a keystroke
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
 
-      // 1. Send to other users instantly for real-time feel
       socket?.emit("send-changes", {
         roomId,
         content: html,
         userId: user?._id,
       });
 
-      // 2. Trigger the debounced database save
       debouncedSave(html);
     },
   });
+
+  useEffect(() => {
+    const fetchNote = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getRoomNote(roomId);
+        if (editor) {
+          editor.commands.setContent(data.content);
+        }
+      } catch (error) {
+        console.error("Failed to load initial note:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (editor) {
+      fetchNote();
+    }
+  }, [roomId, editor]);
 
   // Debounce the save event so it only hits MongoDB 2 seconds AFTER the user stops typing
   const debouncedSave = useCallback(
@@ -74,9 +90,10 @@ export const CollaborativeEditor = ({
   }, [socket, editor]);
 
   return (
-    <div className="border rounded-lg shadow-sm bg-white overflow-hidden w-full">
-      <div className="bg-gray-100 p-2 border-b text-sm text-gray-500 font-semibold">
-        Shared Room Notes
+    <div className="border rounded-lg shadow-sm bg-white overflow-hidden w-full relative">
+      <div className="bg-gray-100 p-2 border-b text-sm text-gray-500 font-semibold flex justify-between">
+        <span>Shared Room Notes</span>
+        {isLoading && <span className="text-xs text-indigo-500 animate-pulse">Syncing...</span>}
       </div>
       <EditorContent editor={editor} />
     </div>

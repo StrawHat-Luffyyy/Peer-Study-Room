@@ -97,48 +97,57 @@ export const ChatBox = ({ roomId }: { roomId: string }) => {
   };
 
   return (
-    <div className="flex flex-col h-125 w-full max-w-md border rounded-lg shadow-sm bg-white">
+    <div className="flex flex-col h-full w-full bg-transparent">
       {/* Chat History Area */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-3">
+      <div className="flex-1 p-4 overflow-y-auto space-y-4">
         {messages.map((msg) => (
           <div
             key={msg._id}
             className={`flex ${msg.senderId._id === user?._id ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`p-2 rounded-lg max-w-[80%] ${msg.senderId._id === user?._id ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-800"}`}
+              className={`p-3 rounded-2xl max-w-[85%] shadow-sm ${
+                msg.senderId._id === user?._id 
+                  ? "bg-indigo-600 text-white rounded-br-none" 
+                  : "bg-neutral-800 text-neutral-200 rounded-bl-none border border-neutral-700/50"
+              }`}
             >
-              <span className="text-xs font-bold block mb-1">
-                {msg.senderId.name}
-              </span>
-              <p className="text-sm">{msg.text}</p>
+              {msg.senderId._id !== user?._id && (
+                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block mb-1">
+                  {msg.senderId.name}
+                </span>
+              )}
+              <p className="text-sm tracking-wide leading-relaxed">{msg.text}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Typing indicator */}
-      {typingUsers.length > 0 && (
-        <div className="px-4 py-1 text-xs text-blue-500 italic animate-pulse bg-white">
-          {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
-        </div>
-      )}
+      <div className="min-h-[24px] px-4 py-1 text-xs text-indigo-400/80 italic">
+        {typingUsers.length > 0 && (
+          <span className="animate-pulse">
+            {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
+          </span>
+        )}
+      </div>
 
       {/* Input Area */}
       <form
         onSubmit={sendMessage}
-        className="p-3 border-t bg-gray-50 flex gap-2"
+        className="p-3 border-t border-neutral-800 bg-neutral-900 flex gap-2 shrink-0"
       >
         <input
           type="text"
           value={inputText}
           onChange={onChangeText}
           placeholder="Type a message..."
-          className="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 px-4 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-white placeholder-neutral-500 transition-colors"
         />
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
+          disabled={!inputText.trim()}
+          className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-neutral-800 disabled:text-neutral-500 text-white px-5 py-2.5 font-medium rounded-xl transition-all shadow-lg shadow-indigo-600/20 disabled:shadow-none active:scale-95"
         >
           Send
         </button>

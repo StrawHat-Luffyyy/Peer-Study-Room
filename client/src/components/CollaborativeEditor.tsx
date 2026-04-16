@@ -24,7 +24,7 @@ export const CollaborativeEditor = ({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl focus:outline-none min-h-[400px] p-4",
+          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl prose-invert max-w-none focus:outline-none min-h-[400px] p-4 text-neutral-300",
       },
     },
     onUpdate: ({ editor }) => {
@@ -90,10 +90,10 @@ export const CollaborativeEditor = ({
   }, [socket, editor]);
 
   return (
-    <div className="border rounded-lg shadow-sm bg-white overflow-hidden w-full relative">
-      <div className="bg-gray-100 p-2 border-b text-sm text-gray-500 font-semibold flex justify-between">
+    <div className="border border-neutral-800 rounded-2xl shadow-xl bg-neutral-900 overflow-hidden w-full relative">
+      <div className="bg-neutral-800/50 p-4 border-b border-neutral-800 text-sm md:text-base text-white font-semibold flex justify-between">
         <span>Shared Room Notes</span>
-        {isLoading && <span className="text-xs text-indigo-500 animate-pulse">Syncing...</span>}
+        {isLoading && <span className="text-xs text-indigo-400 animate-pulse">Syncing...</span>}
       </div>
       <EditorContent editor={editor} />
     </div>

@@ -42,6 +42,26 @@ export const getPublicRooms = async (req, res) => {
   }
 };
 
+// @desc    Get room by ID
+// @route   GET /api/rooms/:id
+export const getRoomById = async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.id)
+      .populate("createdBy", "name avatar")
+      .populate("members", "name avatar");
+      
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    res.json(room);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch room details", error: error.message });
+  }
+};
+
 // @desc    Join a room (handles both public and private logic)
 // @route   POST /api/rooms/:id/join
 export const joinRoom = async (req, res) => {

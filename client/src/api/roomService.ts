@@ -7,11 +7,17 @@ export interface Room {
   createdBy: { _id: string; name: string; avatar: string } | string;
   members: any[];
   isPrivate: boolean;
+  accessCode?: string;
   createdAt: string;
 }
 
 export const getPublicRooms = async (): Promise<Room[]> => {
   const response = await axiosInstance.get("/rooms");
+  return response.data;
+};
+
+export const getRoomById = async (roomId: string): Promise<Room> => {
+  const response = await axiosInstance.get(`/rooms/${roomId}`);
   return response.data;
 };
 

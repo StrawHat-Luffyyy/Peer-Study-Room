@@ -5,7 +5,8 @@ import { useSocket } from "../hooks/useSocket";
 import { ChatBox } from "../components/ChatBox";
 import { PomodoroTimer } from "../components/PomodoroTimer";
 import { CollaborativeEditor } from "../components/CollaborativeEditor";
-import { getPublicRooms, type Room as RoomType } from "../api/roomService";
+import { getRoomById, type Room as RoomType } from "../api/roomService";
+import { Copy, Check } from "lucide-react";
 
 export default function Room() {
   const { id } = useParams<{ id: string }>();
@@ -14,14 +15,13 @@ export default function Room() {
   
   const [roomInfo, setRoomInfo] = useState<RoomType | null>(null);
   const [activeUsers, setActiveUsers] = useState<any[]>([]);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
 
-  // We fetch the room info to display its title. We could use a specific GET /api/rooms/:id 
-  // but since we only have getPublicRooms, we can look it up (or we can just show generic until a new API is added).
   useEffect(() => {
-    // For now, an optimistic approach
-    getPublicRooms().then((rooms) => {
-      const current = rooms.find((r) => r._id === id);
-      if (current) setRoomInfo(current);
+    getRoomById(id as string).then((room) => {
+      setRoomInfo(room);
     }).catch(console.error);
   }, [id]);
 
@@ -39,6 +39,17 @@ export default function Room() {
     navigate("/dashboard");
     return null;
   }
+
+  const handleCopy = (text: string, type: 'id' | 'code') => {
+    navigator.clipboard.writeText(text);
+    if (type === 'id') {
+      setCopiedId(true);
+      setTimeout(() => setCopiedId(false), 2000);
+    } else {
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-neutral-950 flex flex-col font-sans">
@@ -76,18 +87,63 @@ export default function Room() {
               </div>
               <span className="text-xs font-medium text-neutral-300 pr-1">{activeUsers.length} Live</span>
             </div>
-            <button className="p-2 text-neutral-400 hover:text-white bg-neutral-800/50 hover:bg-neutral-800 rounded-lg transition-colors">
-              <Settings className="w-5 h-5" />
-            </button>
+            
+            <div className="relative">
+              <button 
+                onClick={() => setSettingsOpen(!settingsOpen)}
+                className="p-2 text-neutral-400 hover:text-white bg-neutral-800/50 hover:bg-neutral-800 rounded-lg transition-colors focus:outline-none"
+                title="Room Settings"
+              >
+                <Settings className={`w-5 h-5 transition-transform ${settingsOpen ? 'rotate-90 text-white' : ''}`} />
+              </button>
+
+              {settingsOpen && roomInfo && (
+                <div className="absolute right-0 mt-2 w-72 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2">
+                  <h3 className="text-sm font-semibold text-white mb-3">Room Information</h3>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs font-medium text-neutral-500 mb-1 block">Room ID</label>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 bg-neutral-950 px-2 py-1.5 rounded-md text-xs text-indigo-300 overflow-x-auto">
+                          {roomInfo._id}
+                        </code>
+                        <button onClick={() => handleCopy(roomInfo._id, 'id')} className="p-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white rounded-md transition-colors">
+                          {copiedId ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {roomInfo.isPrivate && (
+                      <div>
+                        <label className="text-xs font-medium text-neutral-500 mb-1 block flex items-center justify-between">
+                          Access Code
+                          <span className="text-[10px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Secret</span>
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 bg-neutral-950 px-2 py-1.5 rounded-md text-xs text-amber-300">
+                            {roomInfo.accessCode || "Hidden"}
+                          </code>
+                          <button onClick={() => handleCopy(roomInfo.accessCode || '', 'code')} className="p-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white rounded-md transition-colors">
+                            {copiedCode ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 relative">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-12 gap-6 relative">
         
         {/* Left Column: Editor & Timer */}
-        <div className="lg:col-span-8 flex flex-col gap-6">
+        <div className="md:col-span-8 flex flex-col gap-6">
           <div className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl overflow-hidden p-6 relative">
              <PomodoroTimer roomId={id} socket={socket} />
           </div>
@@ -99,7 +155,7 @@ export default function Room() {
         </div>
 
         {/* Right Column: ChatBox */}
-        <div className="lg:col-span-4 flex flex-col h-[calc(100vh-120px)] lg:sticky lg:top-24">
+        <div className="md:col-span-4 flex flex-col h-[calc(100vh-120px)] md:sticky md:top-24">
           <div className="flex-1 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl overflow-hidden flex flex-col">
              <div className="bg-neutral-800/50 p-4 border-b border-neutral-800 shrink-0">
                <h2 className="text-lg font-semibold text-white">Room Chat</h2>

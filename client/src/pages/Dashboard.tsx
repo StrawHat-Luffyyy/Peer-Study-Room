@@ -6,6 +6,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { getPublicRooms, createRoom, joinRoom, type Room } from "../api/roomService";
 import CreateRoomModal from "../components/CreateRoomModal";
 import JoinPrivateRoomModal from "../components/JoinPrivateRoomModal";
+import JoinByIdModal from "../components/JoinByIdModal";
 
 export default function Dashboard() {
   const { user, logout } = useAuthStore();
@@ -18,6 +19,7 @@ export default function Dashboard() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   
   const [joinModalOpen, setJoinModalOpen] = useState(false);
+  const [joinByIdModalOpen, setJoinByIdModalOpen] = useState(false);
   const [selectedPrivateRoom, setSelectedPrivateRoom] = useState<Room | null>(null);
 
   const fetchRooms = async () => {
@@ -85,6 +87,24 @@ export default function Dashboard() {
     }
   };
 
+  const handleJoinByIdSubmit = async (roomId: string, accessCode: string) => {
+    try {
+      setIsJoining(true);
+      await joinRoom(roomId, accessCode);
+      setJoinByIdModalOpen(false);
+      navigate(`/room/${roomId}`);
+    } catch (error: any) {
+      console.error("Failed to join room by ID:", error);
+      if (error.response?.data?.message === "You are already in this room") {
+        navigate(`/room/${roomId}`);
+      } else {
+        toast.error(error.response?.data?.message || "Invalid room ID or access code.");
+      }
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-neutral-950 p-6 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -107,6 +127,13 @@ export default function Dashboard() {
             >
               <LogOut className="w-4 h-4 cursor-pointer" />
               <span className="hidden sm:inline">Sign Out</span>
+            </button>
+            <button
+              onClick={() => setJoinByIdModalOpen(true)}
+              className="px-5 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-medium rounded-lg border border-neutral-700 transition-all flex items-center gap-2"
+            >
+              <Hash className="w-5 h-5" />
+              <span className="hidden sm:inline">Join with ID</span>
             </button>
             <button
               onClick={() => setCreateModalOpen(true)}
@@ -219,6 +246,13 @@ export default function Dashboard() {
           isLoading={isJoining}
         />
       )}
+
+      <JoinByIdModal
+        isOpen={joinByIdModalOpen}
+        onClose={() => setJoinByIdModalOpen(false)}
+        onSubmit={handleJoinByIdSubmit}
+        isLoading={isJoining}
+      />
     </div>
   );
 }
